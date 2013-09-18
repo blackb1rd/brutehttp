@@ -5,9 +5,9 @@
  *
  *    Description:  This tool for brute force directories and files names on web/application servers.
  *
- *        Version:  0.1
+ *        Version:  0.2
  *        Created:  09/18/2013 03:13:30 PM
- *       Revision:  1
+ *       Revision:  2
  *       Compiler:  gcc
  *
  *         Author:  blackb1rd (blackb1rd@riseup.net),
@@ -26,58 +26,51 @@
 #include <string.h>
 
 #define PORT 80
-#define USERAGENT "Brutehttp 0.1"
+#define USERAGENT "Brutehttp 0.2"
 
-int http_head(char *code, char *host, char *page);
+int http_head(char *host, char *page);
 void usage(void);
  
 int main(int argc, char **argv)
 {
-  char *host;
   int result;
   FILE *fp;
-  if ( argc < 4 )
+  if ( argc < 3 )
   {
     usage();
     return 1;
   }
-  host = argv[2];
-  if (argc == 4) {
+  if (argc == 3) {
     char line[256];
-    fp = fopen(argv[3], "r");
+    fp = fopen(argv[2], "r");
     while(fgets(line,sizeof(line),fp) != NULL) {
       int len = strlen(line)-1;
       if(line[len] == '\n')
         line[len] = '\0';
-      result = http_head(argv[1], host, line);
-      if (!result)
-      printf("-->%s\n",line);
+      result = http_head(argv[1], line);
+      if (result)
+        printf("-->%s  %d\n",line,result);
     }
+    fclose(fp);
   }
-  fclose(fp);
   return 0;
 }
 void usage(void)
 {
-  fprintf(stderr, "USAGE: brutehttp code host [dict]\n\
-  \tcode: the HTTP response code. ex: 200\n\
+  fprintf(stderr, "USAGE: brutehttp host [dict]\n\
   \thost: the website hostname. ex: www.google.com\n\
   \tdict: the dictionary. ex: dict.txt\n");
 }
-int http_head(char *code, char *host, char *page)
+int http_head(char *host, char *page)
 {
   struct sockaddr_in server;
   struct hostent *hent;
-  regex_t regex;
   char buf[BUFSIZ];
-  char check[13];
   char ip[INET_ADDRSTRLEN];
+  int rescode;
   char *head;
   char *tpl = "HEAD /%s HTTP/1.1\r\nUser-Agent: %s\r\nHost: %s\r\nAccept: */*\r\nConnection: close\r\n\r\n";
-  int reti;
   int sock_tcp;
-  reti = regcomp(&regex, code, 0);
-  sprintf(check, "HTTP/1.1 %s",code);
   //create socket TCP
   sock_tcp = socket (AF_INET , SOCK_STREAM , IPPROTO_TCP);
   hent = gethostbyname(host);
@@ -102,10 +95,11 @@ int http_head(char *code, char *host, char *page)
     puts("recv failed");
     exit(2);
   }
-  reti = regexec(&regex, buf, 0, NULL, 0);
-  regfree(&regex);
+  sscanf(buf, "HTTP/1.%*[^ ] %d[^ ]", &rescode);
   close(sock_tcp);
   free(head);
-   
-  return reti;
+  if (rescode == 200 ||rescode == 302)
+    return rescode;
+  else
+    return 0;
 }
