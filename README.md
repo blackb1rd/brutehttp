@@ -11,3 +11,7 @@ git clone https://github.com/blackb1rd/brutehttp
 gcc brutehttp.c -o brutehttp
 ./brutehttp 200 www.google.com dict.txt
 ```
+
+Example
+=======
+[![example](https://github.com/blackb1rd/brutehttp/blob/master/image/example.png)]
