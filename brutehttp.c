@@ -73,7 +73,7 @@ int http_head(char *code, char *host, char *page)
   char check[13];
   char ip[INET_ADDRSTRLEN];
   char *head;
-  char *tpl = "HEAD /%s HTTP/1.1\r\nUser-Agent: %s\r\nHost: %s\r\nAccept: */*\r\n\r\n";
+  char *tpl = "HEAD /%s HTTP/1.1\r\nUser-Agent: %s\r\nHost: %s\r\nAccept: */*\r\nConnection: close\r\n\r\n";
   int reti;
   int sock_tcp;
   reti = regcomp(&regex, code, 0);
