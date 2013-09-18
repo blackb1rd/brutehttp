@@ -66,19 +66,18 @@ void usage(void)
 }
 int http_head(char *code, char *host, char *page)
 {
-  regex_t regex;
-  int reti;
-  char check[13];
-  sprintf(check, "HTTP/1.1 %s",code);
-  reti = regcomp(®ex, code, 0);
-  char ip[INET_ADDRSTRLEN];
   struct sockaddr_in server;
   struct hostent *hent;
-  int sock_tcp;
-  char *head;
+  regex_t regex;
   char buf[BUFSIZ];
+  char check[13];
+  char ip[INET_ADDRSTRLEN];
+  char *head;
   char *tpl = "HEAD /%s HTTP/1.1\r\nUser-Agent: %s\r\nHost: %s\r\nAccept: */*\r\n\r\n";
-  reti = regcomp(®ex, code, 0);
+  int reti;
+  int sock_tcp;
+  reti = regcomp(&regex, code, 0);
+  sprintf(check, "HTTP/1.1 %s",code);
   //create socket TCP
   sock_tcp = socket (AF_INET , SOCK_STREAM , IPPROTO_TCP);
   hent = gethostbyname(host);
@@ -95,18 +94,16 @@ int http_head(char *code, char *host, char *page)
   }
   head = (char *) malloc(strlen(host)+strlen(page)+strlen(USERAGENT)+strlen(tpl)-5);
   sprintf(head, tpl, page, USERAGENT, host);
-  //Send the query to the server
   if (send(sock_tcp, head, strlen(head), 0) < 0) {
     puts("Send failed");
     exit(2);
   }
-  //now it is time to receive the page
   if (recv(sock_tcp, buf, BUFSIZ, 0) < 0) {
     puts("recv failed");
     exit(2);
   }
-  reti = regexec(®ex, buf, 0, NULL, 0);
-  regfree(®ex);
+  reti = regexec(&regex, buf, 0, NULL, 0);
+  regfree(&regex);
   close(sock_tcp);
   free(head);
    
