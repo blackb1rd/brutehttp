@@ -7,7 +7,6 @@
  *
  *        Version:  0.2
  *        Created:  09/18/2013 03:13:30 PM
- *       Revision:  2
  *       Compiler:  gcc
  *
  *         Author:  blackb1rd (blackb1rd@riseup.net),
@@ -35,16 +34,16 @@ int main(int argc, char **argv)
 {
   int result;
   FILE *fp;
-  if ( argc < 3 )
-  {
+  if ( argc < 3 ) {
     usage();
     return 1;
   }
   if (argc == 3) {
     char line[256];
+    unsigned int len;
     fp = fopen(argv[2], "r");
-    while(fgets(line,sizeof(line),fp) != NULL) {
-      int len = strlen(line)-1;
+    while(fgets(line,255,fp) != NULL) {
+      len = strlen(line)-1;
       if(line[len] == '\n')
         line[len] = '\0';
       result = http_head(argv[1], line);
@@ -67,7 +66,7 @@ int http_head(char *host, char *page)
   struct hostent *hent;
   char buf[BUFSIZ];
   char ip[INET_ADDRSTRLEN];
-  int rescode;
+  unsigned int rescode;
   char *head;
   char *tpl = "HEAD /%s HTTP/1.1\r\nUser-Agent: %s\r\nHost: %s\r\nAccept: */*\r\nConnection: close\r\n\r\n";
   int sock_tcp;
@@ -82,23 +81,23 @@ int http_head(char *host, char *page)
   server.sin_family = AF_INET;
   server.sin_port = htons (PORT);
   if (connect(sock_tcp, (struct sockaddr *)&server, sizeof(struct sockaddr)) < 0) {
-    puts("Could not connect");
+    perror("Could not connect");
     exit(2);
   }
   head = (char *) malloc(strlen(host)+strlen(page)+strlen(USERAGENT)+strlen(tpl)-5);
   sprintf(head, tpl, page, USERAGENT, host);
   if (send(sock_tcp, head, strlen(head), 0) < 0) {
-    puts("Send failed");
+    perror("Send failed");
     exit(2);
   }
   if (recv(sock_tcp, buf, BUFSIZ, 0) < 0) {
-    puts("recv failed");
+    perror("recv failed");
     exit(2);
   }
   sscanf(buf, "HTTP/1.%*[^ ] %d[^ ]", &rescode);
   close(sock_tcp);
   free(head);
-  if (rescode == 200 ||rescode == 302)
+  if (rescode != 404)
     return rescode;
   else
     return 0;
