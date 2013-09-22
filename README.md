@@ -9,7 +9,7 @@ How to use?
 ```shell
 git clone https://github.com/blackb1rd/brutehttp
 gcc brutehttp.c -o brutehttp
-./brutehttp 200 www.google.com dict.txt
+./brutehttp www.google.com dict.txt
 ```
 
 Example
