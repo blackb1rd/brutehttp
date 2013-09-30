@@ -21,7 +21,6 @@
 #include <stdlib.h>
 #include <netdb.h>
 //#include <pthread.h>
-#include <regex.h>
 #include <string.h>
 
 #define PORT 80
@@ -62,14 +61,14 @@ void usage(void)
 }
 int http_head(char *host, char *page)
 {
-  struct sockaddr_in server;
-  struct hostent *hent;
+  int sock_tcp;
+  unsigned int rescode;
   char buf[BUFSIZ];
   char ip[INET_ADDRSTRLEN];
-  unsigned int rescode;
   char *head;
   char *tpl = "HEAD /%s HTTP/1.1\r\nUser-Agent: %s\r\nHost: %s\r\nAccept: */*\r\nConnection: close\r\n\r\n";
-  int sock_tcp;
+  struct sockaddr_in server;
+  struct hostent *hent;
   //create socket TCP
   sock_tcp = socket (AF_INET , SOCK_STREAM , IPPROTO_TCP);
   hent = gethostbyname(host);
@@ -97,8 +96,5 @@ int http_head(char *host, char *page)
   sscanf(buf, "HTTP/1.%*[^ ] %d[^ ]", &rescode);
   close(sock_tcp);
   free(head);
-  if (rescode != 404)
-    return rescode;
-  else
-    return 0;
+  return rescode == 404 ? 0 : rescode;
 }
