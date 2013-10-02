@@ -14,4 +14,4 @@ gcc brutehttp.c -o brutehttp
 
 Example
 =======
-[![example](https://raw.github.com/blackb1rd/brutehttp/master/image/example.png)]
+[!example](https://raw.github.com/blackb1rd/brutehttp/master/image/example.png)]
