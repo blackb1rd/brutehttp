@@ -5,7 +5,7 @@
  *
  *    Description:  This tool for brute force directories and files names on web/application servers.
  *
- *        Version:  0.3
+ *        Version:  0.4
  *        Created:  09/18/2013 03:13:30 PM
  *       Compiler:  gcc
  *
@@ -24,7 +24,7 @@
 #include <string.h>
 
 #define PORT 80
-#define USERAGENT "Brutehttp 0.3"
+#define USERAGENT "Brutehttp 0.4"
 
 void usage(void);
  
@@ -36,8 +36,9 @@ int main(int argc, char **argv)
   }
   if (argc == 3) {
     int sock_tcp;
+    int i;
     unsigned int rescode;
-    char page[256];
+    char page[71];
     char buf[BUFSIZ];
     char ip[INET_ADDRSTRLEN];
     char *head;
@@ -45,21 +46,28 @@ int main(int argc, char **argv)
     struct sockaddr_in server;
     struct hostent *hent;
     
-    head = (char *) malloc(strlen(argv[1])+strlen(USERAGENT)+255+78-5);//limit dictionary 255 character
+    head = (char *) malloc(strlen(argv[1])+strlen(USERAGENT)+70+78-5);//limit dictionary 70 character
     fp = fopen(argv[2], "r");
-    while(fgets(page,255,fp) != NULL) {
+    for(i = 0;i < 80;i++)
+      printf("-");
+    printf("\n| Directories & Files Names                                             |Status|\n");
+    while(i--)
+      printf("-");
+    printf("\n");
+    hent = gethostbyname(argv[1]);
+    if(inet_ntop(AF_INET, (void *)hent->h_addr_list[0], ip, INET_ADDRSTRLEN) == NULL) {
+      perror("Can't resolve host");
+      return 1;
+    }
+    inet_pton (AF_INET, ip, (void *) (&(server.sin_addr.s_addr)));
+    server.sin_family = AF_INET;
+    server.sin_port = htons (PORT);
+    while(fgets(page,70,fp) != NULL) {
       if(page[strlen(page)-1] == '\n')
         page[strlen(page)-1] = '\0';
+      printf("\r%-70s", page);
       //create socket TCP
       sock_tcp = socket (AF_INET , SOCK_STREAM , IPPROTO_TCP);
-      hent = gethostbyname(argv[1]);
-      if(inet_ntop(AF_INET, (void *)hent->h_addr_list[0], ip, INET_ADDRSTRLEN) == NULL) {
-        perror("Can't resolve host");
-        return 1;
-      }
-      inet_pton (AF_INET, ip, (void *) (&(server.sin_addr.s_addr)));
-      server.sin_family = AF_INET;
-      server.sin_port = htons (PORT);
       if (connect(sock_tcp, (struct sockaddr *)&server, sizeof(struct sockaddr)) < 0) {
         perror("Could not connect");
         return 1;
@@ -75,8 +83,12 @@ int main(int argc, char **argv)
       }
       sscanf(buf, "HTTP/1.%*[^ ] %d[^ ]", &rescode);
       if (rescode != 404)
-        printf("-->%s  %d\n", page, rescode);
+        printf("\r| %-70s|  %d |\n", page, rescode);
     }
+    printf("\r");
+    for(i = 0;i < 80;i++)
+      printf("-");
+    printf("\n");
     close(sock_tcp);
     free(head);
     fclose(fp);
@@ -86,6 +98,6 @@ int main(int argc, char **argv)
 void usage(void)
 {
   fprintf(stderr, "USAGE: brutehttp host [dict]\n\
-  \thost: the website hostname. ex: www.google.com\n\
-  \tdict: the dictionary. ex: dict.txt\n");
+  \thost: the website hostname.  ex: www.google.com\n\
+  \tdict: the dictionary.        ex: dict.txt\n");
 }
