@@ -35,13 +35,13 @@ int main(int argc, char **argv)
     return 1;
   }
   if (argc == 3) {
-    int sock_tcp;
-    int i;
-    unsigned int rescode;
     char page[71];
     char buf[BUFSIZ];
     char ip[INET_ADDRSTRLEN];
     char *head;
+    unsigned char i;
+    unsigned int rescode;
+    int sock_tcp;
     FILE *fp;
     struct sockaddr_in server;
     struct hostent *hent;
@@ -89,7 +89,6 @@ int main(int argc, char **argv)
     for(i = 0;i < 80;i++)
       printf("-");
     printf("\n");
-    close(sock_tcp);
     free(head);
     fclose(fp);
   }
