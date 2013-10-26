@@ -40,19 +40,15 @@ int main(int argc,const char **argv)
     char buf[BUFSIZ];
     char ip[INET_ADDRSTRLEN];
     char *head;
-    uint8_t i;
     uint16_t rescode;
     int sock_tcp;
     FILE *fp;
     struct sockaddr_in server;
     struct hostent *hent;
     
-    for(i = 0;i < 80;i++)
-      printf("-");
-    printf("\n| Directories & Files Names |Status|\n");
-    while(i--)
-      printf("-");
-    printf("\n");
+    printf("--------------------------------------------------------------------------------\n");
+    printf("| Directories & Files Names                                             |Status|\n");
+    printf("--------------------------------------------------------------------------------\n");
 
     head = (char *) malloc(strlen(argv[1])+strlen(USERAGENT)+70+78-5);//limit dictionary 70 character
     fp = fopen(argv[2], "r");
@@ -88,10 +84,7 @@ int main(int argc,const char **argv)
         printf("\r| %-70s| %d |\n", page, rescode);
     }
 
-    printf("\r");
-    for(i = 0;i < 80;i++)
-      printf("-");
-    printf("\n");
+    printf("\r-------------------------------------------------------------------------------\n");
 
     free(head);
     fclose(fp);
@@ -100,7 +93,7 @@ int main(int argc,const char **argv)
 }
 void usage(void)
 {
-  fprintf(stderr, "USAGE: brutehttp host [dict]\n\
-\thost: the website hostname. ex: www.google.com\n\
-\tdict: the dictionary. ex: dict.txt\n");
+  fprintf(stderr, "USAGE: ./brutehttp Host [Dict]\n\
+  Host : The website hostname. ex: www.google.com\n\
+  Dict : The dictionary.       ex: dict.txt\n");
 }
