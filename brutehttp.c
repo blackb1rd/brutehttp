@@ -15,21 +15,20 @@
  */
 
 #include <stdio.h>
-#include <stdlib.h>
-#include <stdint.h>
-#include <string.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <arpa/inet.h>
+#include <stdlib.h>
 #include <netdb.h>
 //#include <pthread.h>
+#include <string.h>
 
 #define PORT 80
 #define USERAGENT "Brutehttp 0.4"
 
 void usage(void);
  
-int main(int argc,const char **argv)
+int main(int argc, char **argv)
 {
   if ( argc < 3 ) {
     usage();
@@ -40,22 +39,18 @@ int main(int argc,const char **argv)
     char buf[BUFSIZ];
     char ip[INET_ADDRSTRLEN];
     char *head;
-    uint8_t i;
-    uint16_t rescode;
+    unsigned char i;
+    unsigned int rescode;
     int sock_tcp;
     FILE *fp;
     struct sockaddr_in server;
     struct hostent *hent;
     
-    for(i = 0;i < 80;i++)
-      printf("-");
-    printf("\n| Directories & Files Names                                             |Status|\n");
-    while(i--)
-      printf("-");
-    printf("\n");
-
     head = (char *) malloc(strlen(argv[1])+strlen(USERAGENT)+70+78-5);//limit dictionary 70 character
     fp = fopen(argv[2], "r");
+    printf("--------------------------------------------------------------------------------\n");
+    printf("| Directories & Files Names                                             |Status|\n");
+    printf("--------------------------------------------------------------------------------\n");
     hent = gethostbyname(argv[1]);
     if(inet_ntop(AF_INET, (void *)hent->h_addr_list[0], ip, INET_ADDRSTRLEN) == NULL) {
       perror("Can't resolve host");
@@ -68,13 +63,13 @@ int main(int argc,const char **argv)
       if(page[strlen(page)-1] == '\n')
         page[strlen(page)-1] = '\0';
       printf("\r%-70s", page);
-      sprintf(head, "HEAD /%s HTTP/1.1\r\nUser-Agent: %s\r\nHost: %s\r\nAccept: */*\r\nConnection: close\r\n\r\n", page, USERAGENT, argv[1]);
       //create socket TCP
       sock_tcp = socket (AF_INET , SOCK_STREAM , IPPROTO_TCP);
       if (connect(sock_tcp, (struct sockaddr *)&server, sizeof(struct sockaddr)) < 0) {
         perror("Could not connect");
         return 1;
       }
+      sprintf(head, "HEAD /%s HTTP/1.1\r\nUser-Agent: %s\r\nHost: %s\r\nAccept: */*\r\nConnection: close\r\n\r\n", page, USERAGENT, argv[1]);
       if (send(sock_tcp, head, strlen(head), 0) < 0) {
         perror("Send failed");
         return 1;
@@ -83,16 +78,11 @@ int main(int argc,const char **argv)
         perror("recv failed");
         return 1;
       }
-      sscanf(buf, "HTTP/1.%*[^ ] %hu[^ ]", &rescode);
+      sscanf(buf, "HTTP/1.%*[^ ] %d[^ ]", &rescode);
       if (rescode != 404)
         printf("\r| %-70s|  %d |\n", page, rescode);
     }
-
-    printf("\r");
-    for(i = 0;i < 80;i++)
-      printf("-");
-    printf("\n");
-
+    printf("\r--------------------------------------------------------------------------------\n");
     free(head);
     fclose(fp);
   }
