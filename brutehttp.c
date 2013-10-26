@@ -79,7 +79,7 @@ int main(int argc,const char **argv)
         perror("recv failed");
         return 1;
       }
-      sscanf(buf, "HTTP/1.%*[^ ] %hu[^ ]", &rescode);
+      sscanf(buf, "HTTP/1.%*[^ ] %3hu[^ ]", &rescode);
       if (rescode != 404)
         printf("\r| %-70s| %d |\n", page, rescode);
     }
