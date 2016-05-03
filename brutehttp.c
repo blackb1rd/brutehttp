@@ -5,11 +5,11 @@
 *
 * Description: This tool for brute force directories and files names on web/application servers.
 *
-* Version: 0.4
+* Version: 0.5
 * Created: 09/18/2013 03:13:30 PM
 * Compiler: gcc
 *
-* Author: blackb1rd (blackb1rd@riseup.net),
+* Author: Prachya Saechua (blackb1rd@blackb1rd.me),
 *
 * =====================================================================================
 */
@@ -22,8 +22,6 @@
 #include <sys/types.h>
 #include <arpa/inet.h>
 #include <netdb.h>
-
-#define PORT 80
 
 static void usage(void);
 
@@ -39,11 +37,8 @@ int main(int argc,const char **argv)
   FILE *fp;
   struct hostent *hent;
   const char *domainname = argv[1];
-  const char *USERAGENT="Brutehttp 0.5";
-
-  printf("--------------------------------------------------------------------------------\n");
-  printf("| Directories & Files Names                                             |Status|\n");
-  printf("--------------------------------------------------------------------------------\n");
+  const char *USERAGENT  = "Brutehttp 0.5";
+  const int  PORT        = 80;
 
   head = malloc(2048);
   fp = fopen(argv[2], "r");
@@ -64,6 +59,10 @@ int main(int argc,const char **argv)
   char buf[BUFSIZ];
   int sock_tcp;
   unsigned int rescode;
+
+  printf("--------------------------------------------------------------------------------\n");
+  printf("| Directories & Files Names                                             |Status|\n");
+  printf("--------------------------------------------------------------------------------\n");
 
   while (fgets(page,70,fp) != NULL) {
     //create socket TCP
