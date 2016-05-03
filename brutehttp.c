@@ -22,78 +22,83 @@
 #include <sys/types.h>
 #include <arpa/inet.h>
 #include <netdb.h>
-//#include <pthread.h>
 
 #define PORT 80
-#define USERAGENT "Brutehttp 0.4"
 
-void usage(void);
- 
+static void usage(void);
+
 int main(int argc,const char **argv)
 {
-  if ( argc < 3 ) {
+  if (argc < 3 || argc > 3) {
     usage();
     return 1;
   }
-  if (argc == 3) {
-    char page[71];
-    char buf[BUFSIZ];
-    char ip[INET_ADDRSTRLEN];
-    char *head;
-    uint16_t rescode;
-    int sock_tcp;
-    FILE *fp;
-    struct sockaddr_in server;
-    struct hostent *hent;
-    
-    printf("--------------------------------------------------------------------------------\n");
-    printf("| Directories & Files Names                                             |Status|\n");
-    printf("--------------------------------------------------------------------------------\n");
 
-    head = (char *) malloc(strlen(argv[1])+strlen(USERAGENT)+70+78-5);//limit dictionary 70 character
-    fp = fopen(argv[2], "r");
-    hent = gethostbyname(argv[1]);
-    if(inet_ntop(AF_INET, (void *)hent->h_addr_list[0], ip, INET_ADDRSTRLEN) == NULL) {
-      perror("Can't resolve host");
+  char ip[INET_ADDRSTRLEN];
+  char *head;
+  FILE *fp;
+  struct hostent *hent;
+  const char *domainname = argv[1];
+  const char *USERAGENT="Brutehttp 0.5";
+
+  printf("--------------------------------------------------------------------------------\n");
+  printf("| Directories & Files Names                                             |Status|\n");
+  printf("--------------------------------------------------------------------------------\n");
+
+  head = malloc(2048);
+  fp = fopen(argv[2], "r");
+  hent = gethostbyname(domainname);
+
+  if (inet_ntop(AF_INET, (void *)hent->h_addr_list[0], ip, INET_ADDRSTRLEN) == NULL) {
+    perror("Can't resolve host");
+    return 1;
+  }
+
+  struct sockaddr_in target;
+
+  inet_pton(AF_INET, ip, (void *) (&(target.sin_addr.s_addr)));
+  target.sin_family = AF_INET;
+  target.sin_port = htons (PORT);
+
+  char page[71];
+  char buf[BUFSIZ];
+  int sock_tcp;
+  unsigned int rescode;
+
+  while (fgets(page,70,fp) != NULL) {
+    //create socket TCP
+    if ((sock_tcp = socket (AF_INET , SOCK_STREAM , IPPROTO_TCP)) < 0) {
+      perror("Could not create socket TCP");
       return 1;
     }
-    inet_pton (AF_INET, ip, (void *) (&(server.sin_addr.s_addr)));
-    server.sin_family = AF_INET;
-    server.sin_port = htons (PORT);
-    while(fgets(page,70,fp) != NULL) {
-      if(page[strlen(page)-1] == '\n')
-        page[strlen(page)-1] = '\0';
-      printf("\r%-70s", page);
-      sprintf(head, "HEAD /%s HTTP/1.1\r\nUser-Agent: %s\r\nHost: %s\r\nAccept: */*\r\nConnection: close\r\n\r\n", page, USERAGENT, argv[1]);
-      //create socket TCP
-      sock_tcp = socket (AF_INET , SOCK_STREAM , IPPROTO_TCP);
-      if (connect(sock_tcp, (struct sockaddr *)&server, sizeof(struct sockaddr)) < 0) {
-        perror("Could not connect");
-        return 1;
-      }
-      if (send(sock_tcp, head, strlen(head), 0) < 0) {
-        perror("Send failed");
-        return 1;
-      }
-      if (recv(sock_tcp, buf, BUFSIZ, 0) < 0) {
-        perror("recv failed");
-        return 1;
-      }
-      sscanf(buf, "HTTP/1.%*[^ ] %3hu[^ ]", &rescode);
-      if (rescode != 404)
-        printf("\r| %-70s| %d |\n", page, rescode);
+
+    if (page[strlen(page)-1] == '\n')
+      page[strlen(page)-1] = '\0';
+    printf("\r%-70s", page);
+    snprintf(head, 2048, "HEAD /%s HTTP/1.1\r\nUser-Agent: %s\r\nHost: %s\r\nAccept: */*\r\nConnection: close\r\n\r\n", page, USERAGENT, domainname);
+    if (connect(sock_tcp, (struct sockaddr *)&target, sizeof(target)) < 0) {
+      perror("Could not connect");
+      return 1;
     }
+    send(sock_tcp, head, strlen(head), 0);
+    recv(sock_tcp, buf, BUFSIZ, 0);
 
-    printf("\r-------------------------------------------------------------------------------\n");
-
-    free(head);
-    fclose(fp);
+    sscanf(buf, "HTTP/1.%*[^ ] %3u[^ ]", &rescode);
+    if (rescode != 404)
+      printf("\r| %-70s| %d |\n", page, rescode);
   }
+  printf("\r-------------------------------------------------------------------------------\n");
+
+  free(head);
+  fclose(fp);
+
   return 0;
 }
-void usage(void)
+
+static void usage(void)
 {
   fprintf(stderr, "USAGE: ./brutehttp Host [Dict]\n\
   Host : The website hostname. ex: www.google.com\n\
   Dict : The dictionary.       ex: dict.txt\n");
 }
+
