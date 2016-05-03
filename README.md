@@ -8,7 +8,7 @@ How to use?
 
 ```shell
 git clone https://github.com/blackb1rd/brutehttp
-gcc brutehttp.c -o brutehttp
+make
 ./brutehttp www.google.com dict.txt
 ```
 
